@@ -11,7 +11,7 @@ app = Flask(__name__)
 os.makedirs("static/images", exist_ok=True)
 
 # Replace with your actual YouTube Data API Key
-YOUTUBE_API_KEY = 'AIzaSyCZKb09ksAG3ODCOb4VaeJAnHFzT1g9S4I'
+YOUTUBE_API_KEY = '***********'
 
 # Function to fetch YouTube comments
 def fetch_comments(video_id):
