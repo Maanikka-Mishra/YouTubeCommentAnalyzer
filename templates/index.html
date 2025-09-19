@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Comment Sentiment Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        function extractVideoID(event) {
+            event.preventDefault();
+            
+            let urlInput = document.getElementById("video_url");
+            let videoIDInput = document.getElementById("video_id");
+            let url = urlInput.value.trim();
+            
+            // Enhanced regex to handle various YouTube URL formats
+            let match = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^\"&?\/\s]{11})/);
+            
+            if (match && match[1]) {
+                videoIDInput.value = match[1];
+                showNotification("Video ID extracted successfully!", "success");
+                document.getElementById("analyzeForm").submit();
+            } else {
+                showNotification("Invalid YouTube URL. Please enter a valid YouTube URL or Video ID.", "error");
+            }
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'}"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        function showLoading() {
+            const button = document.querySelector('.analyze-btn');
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+            button.disabled = true;
+        }
+    </script>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <i class="fab fa-youtube"></i>
+                <h1>YouTube Sentiment Analyzer</h1>
+            </div>
+            <p class="subtitle">AI-Powered Comment Analysis & Insights</p>
+        </header>
+
+        <main class="main-content">
+            <div class="hero-section">
+                <div class="hero-content">
+                    <h2>Analyze YouTube Comments with AI</h2>
+                    <p>Get instant sentiment analysis of YouTube video comments using advanced machine learning algorithms.</p>
+                </div>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <i class="fas fa-brain"></i>
+                        <h3>AI Analysis</h3>
+                        <p>Advanced sentiment detection</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-chart-pie"></i>
+                        <h3>Visual Charts</h3>
+                        <p>Interactive data visualization</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-bolt"></i>
+                        <h3>Real-time</h3>
+                        <p>Instant results</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="analysis-section">
+                <div class="analysis-card">
+                    <h3><i class="fas fa-search"></i> Start Analysis</h3>
+                    
+                    <form id="analyzeForm" action="/analyze" method="POST" onsubmit="showLoading()">
+                        <div class="input-group">
+                            <div class="input-wrapper">
+                                <i class="fab fa-youtube"></i>
+                                <input type="text" name="video_id" id="video_id" placeholder="Enter YouTube Video ID (e.g., dQw4w9WgXcQ)" required>
+                            </div>
+                            <button type="submit" class="analyze-btn">
+                                <i class="fas fa-play"></i>
+                                Analyze Comments
+                            </button>
+                        </div>
+                        
+                        <div class="divider">
+                            <span>OR</span>
+                        </div>
+                        
+                        <div class="input-group">
+                            <div class="input-wrapper">
+                                <i class="fas fa-link"></i>
+                                <input type="text" id="video_url" placeholder="Paste YouTube URL here" onkeypress="if(event.key==='Enter') extractVideoID(event)">
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <div class="help-text">
+                        <i class="fas fa-info-circle"></i>
+                        <p>Enter either a YouTube Video ID or paste the full YouTube URL. The analyzer will fetch up to 20 comments for sentiment analysis.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2024 YouTube Sentiment Analyzer. Powered by AI & Machine Learning.</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analysis Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        function toggleNegativeComments() {
+            const commentsSection = document.getElementById("negative-comments");
+            const button = document.querySelector('.negative-sentiment');
+            const icon = button.querySelector('i');
+            
+            if (commentsSection.style.display === "none" || commentsSection.style.display === "") {
+                commentsSection.style.display = "block";
+                icon.className = "fas fa-chevron-up";
+                button.classList.add('active');
+            } else {
+                commentsSection.style.display = "none";
+                icon.className = "fas fa-chevron-down";
+                button.classList.remove('active');
+            }
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        function downloadResults() {
+            // Create a simple text file with results
+            const content = `YouTube Sentiment Analysis Results\nVideo ID: {{ video_id }}\n\nSentiment Breakdown:\nPositive: {{ sentiment_results['Positive'] }}\nNeutral: {{ sentiment_results['Neutral'] }}\nNegative: {{ sentiment_results['Negative'] }}\n\nGenerated on: ${new Date().toLocaleString()}`;
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sentiment_analysis_results.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+    </script>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div class="container">
+        <header class="results-header">
+            <div class="header-content">
+                <button class="back-btn" onclick="goBack()">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Analyzer
+                </button>
+                <div class="header-title">
+                    <h1><i class="fas fa-chart-line"></i> Analysis Results</h1>
+                    <p>Video ID: <span class="video-id">{{ video_id }}</span></p>
+                </div>
+                <button class="download-btn" onclick="downloadResults()">
+                    <i class="fas fa-download"></i>
+                    Download
+                </button>
+            </div>
+        </header>
+
+        <main class="results-content">
+            <div class="charts-section">
+                <div class="chart-container">
+                    <div class="chart-card">
+                        <h3><i class="fas fa-chart-pie"></i> Sentiment Distribution</h3>
+                        <img src="{{ pie_chart_path }}" alt="Pie Chart" class="chart-image">
+                    </div>
+                    <div class="chart-card">
+                        <h3><i class="fas fa-chart-bar"></i> Sentiment Count</h3>
+                        <img src="{{ bar_chart_path }}" alt="Bar Chart" class="chart-image">
+                    </div>
+                </div>
+            </div>
+
+            <div class="sentiment-breakdown">
+                <h2><i class="fas fa-analytics"></i> Sentiment Breakdown</h2>
+                <div class="sentiment-cards">
+                    <div class="sentiment-card positive">
+                        <div class="sentiment-icon">
+                            <i class="fas fa-smile"></i>
+                        </div>
+                        <div class="sentiment-info">
+                            <h3>Positive</h3>
+                            <span class="count">{{ sentiment_results['Positive'] }}</span>
+                            <div class="percentage">
+                                {% set total = sentiment_results['Positive'] + sentiment_results['Neutral'] + sentiment_results['Negative'] %}
+                                {% if total > 0 %}
+                                    {{ "%.1f"|format((sentiment_results['Positive'] / total) * 100) }}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sentiment-card neutral">
+                        <div class="sentiment-icon">
+                            <i class="fas fa-meh"></i>
+                        </div>
+                        <div class="sentiment-info">
+                            <h3>Neutral</h3>
+                            <span class="count">{{ sentiment_results['Neutral'] }}</span>
+                            <div class="percentage">
+                                {% if total > 0 %}
+                                    {{ "%.1f"|format((sentiment_results['Neutral'] / total) * 100) }}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sentiment-card negative">
+                        <div class="sentiment-icon">
+                            <i class="fas fa-frown"></i>
+                        </div>
+                        <div class="sentiment-info">
+                            <h3>Negative</h3>
+                            <span class="count">{{ sentiment_results['Negative'] }}</span>
+                            <div class="percentage">
+                                {% if total > 0 %}
+                                    {{ "%.1f"|format((sentiment_results['Negative'] / total) * 100) }}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if negative_comments %}
+            <div class="negative-comments-section">
+                <div class="negative-sentiment" onclick="toggleNegativeComments()">
+                    <div class="negative-header">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Negative Comments</h3>
+                        <span class="negative-count">{{ negative_comments|length }} comments</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+
+                <div id="negative-comments" class="negative-comments-list" style="display: none;">
+                    {% for comment in negative_comments %}
+                    <div class="comment-item">
+                        <div class="comment-content">
+                            <i class="fas fa-quote-left"></i>
+                            <p>{{ comment }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="summary-section">
+                <div class="summary-card">
+                    <h3><i class="fas fa-info-circle"></i> Analysis Summary</h3>
+                    <div class="summary-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Comments</span>
+                            <span class="stat-value">{{ sentiment_results['Positive'] + sentiment_results['Neutral'] + sentiment_results['Negative'] }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Analysis Time</span>
+                            <span class="stat-value">Real-time</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Confidence</span>
+                            <span class="stat-value">High</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2024 YouTube Sentiment Analyzer. Powered by AI & Machine Learning.</p>
+        </footer>
+    </div>
+</body>
+</html>
